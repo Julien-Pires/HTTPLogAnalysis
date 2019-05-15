@@ -6,6 +6,13 @@
 
   <ItemGroup>
     <Compile Include="Data.fs" />
+    <Compile Include="IO.fs" />
+    <Compile Include="Parser.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="2.0.21" />
   </ItemGroup>
 
 </Project>
