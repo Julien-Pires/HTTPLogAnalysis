@@ -17,6 +17,7 @@ module File =
                 yield i
             do! Async.Sleep 1000 
             yield! read stream }
-        let stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-        let reader = new StreamReader(stream)
-        read reader
+        asyncSeq {
+            use stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+            use reader = new StreamReader(stream)
+            yield! read reader }
