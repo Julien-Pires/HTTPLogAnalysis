@@ -2,6 +2,8 @@
 
 open System
 
+type Agent<'a> = MailboxProcessor<'a>
+
 type RequestMethod =
     | POST
     | GET
