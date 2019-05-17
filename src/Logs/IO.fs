@@ -1,4 +1,4 @@
-﻿namespace HTTPAnalysis.Monitoring
+﻿namespace Logs
 
 open System.IO
 open FSharp.Control
@@ -15,9 +15,16 @@ module File =
         let rec read (stream : StreamReader) = asyncSeq {
             for i in readLines stream do
                 yield i
-            do! Async.Sleep 200 
+            do! Async.Sleep 50 
             yield! read stream }
         asyncSeq {
-            use stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-            use reader = new StreamReader(stream)
+            use file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+            use reader = new StreamReader(file)
             yield! read reader }
+
+    let writeContinuously path (source : AsyncSeq<string>) = async {
+        let file = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite)
+        let writer = new StreamWriter(file)
+        writer.AutoFlush <- true
+        for i in source do 
+            writer.WriteLine(i) }

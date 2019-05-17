@@ -1,12 +1,12 @@
-﻿// Learn more about F# at http://fsharp.org
-
-open System
+﻿open System
 open FSharp.Control
-open HTTPAnalysis.Monitoring
+open Logs
+
+let defaultPath = "/temp/access.log"
 
 [<EntryPoint>]
 let main argv =
-    File.readContinuously "C:\Users\Takumi\Desktop\Foo.txt" 
+    File.readContinuously defaultPath
     |> AsyncSeq.iter (fun c -> Console.WriteLine(LogParser.parse c))
     |> Async.Start
 

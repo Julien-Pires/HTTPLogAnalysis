@@ -1,4 +1,4 @@
-﻿namespace HTTPAnalysis.Monitoring
+﻿namespace Logs
 
 open System
 open System.Globalization
