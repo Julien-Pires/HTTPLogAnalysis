@@ -10,8 +10,9 @@ type RequestMethod =
 
 type Request = {
     Address : string
-    Method : RequestMethod
-    Section : string 
     Date : DateTime
+    User : string
+    Method : RequestMethod
+    Sections : string list
     StatusCode : int16
     ResponseSize : int }

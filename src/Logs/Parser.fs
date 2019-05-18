@@ -64,8 +64,14 @@ module LogParser =
 
     let private parseLog : Parser<_> =
         pipe5 (parseIP .>> ws) (parseHTTPIdent .>> ws) (parseHTTPUser .>> ws) (parseHTTPDateTime .>> ws) parseHTTPQuery (
-            fun ip _ user date sections ->
-                (ip, user, date, sections))
+            fun ip _ user date sections -> {
+                Address = ip
+                Date = date
+                User = user
+                Method = RequestMethod.GET
+                Sections = sections 
+                StatusCode = 200s
+                ResponseSize = 0 })
 
     let parse logEntry =
         run parseLog logEntry

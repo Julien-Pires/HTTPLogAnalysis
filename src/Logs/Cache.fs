@@ -5,10 +5,11 @@ open System
 type CacheAction =
     | Add of Request
     | Get of AsyncReplyChannel<Request list>
-    | Clear
+
+type CacheContent = Request list
 
 type CacheStatus = {
-    Requests : Request list 
+    Requests : CacheContent
     LastClear : int64 }
 
 type RequestCache() =
@@ -19,9 +20,13 @@ type RequestCache() =
             | Add x -> return! loop { state with Requests = x::state.Requests }
             | Get x ->
                 x.Reply state.Requests
-                return! loop state
-            | Clear -> return! loop state }
+                return! loop state }
         loop { Requests = []; LastClear = DateTime.Now.Ticks })
 
-    let Add request = agent.Post (Add request)
-    let Get = agent.PostAndReply Get
+    member __.Add request = agent.Post (Add request)
+    member __.Get = agent.PostAndReply Get
+
+module RequestCache = 
+    let getRequests timeSpan (cache : CacheContent) =
+        let datetime = DateTime.Now.AddSeconds(-timeSpan)
+        cache |> Seq.filter(fun c -> c.Date >= datetime)

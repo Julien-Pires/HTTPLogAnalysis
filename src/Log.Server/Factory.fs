@@ -22,11 +22,12 @@ module LogFactory =
         "/resources/photo.png"
         "/pages/spells.html"
         "/pages/army.html"
-        "/quest.pdf"|]
+        "/quest.pdf"
+        "/dungeon.pdf"|]
 
     let Logs =
         let rec loop () = asyncSeq {
-            do! Async.Sleep 100
+            do! Async.Sleep 90
             let rnd = Random()
             let address = rnd.Next(0, addresses.Length)
             let user = rnd.Next(0, users.Length)
