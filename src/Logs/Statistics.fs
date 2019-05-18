@@ -1,44 +1,28 @@
 ﻿namespace Logs
 
-open FSharp.Control
+type StatisticComputation = {
+    Name : string
+    Computation : IComputation }
 
-type StatisticRecord<'a> = {
-    Name : string 
-    Value : 'a }
+type StatisticResult = {
+    Name : string
+    Result : ComputationResults }
 
-type Statistics<'a> =
-    | Single of StatisticRecord<'a>
-    | Multiple of StatisticRecord<'a> list
-
-[<AbstractClass>]
-type IStatisticsComputation() =
-    abstract member Compute : CacheContent -> unit
-
-type RankingStatistics() =
-    inherit IStatisticsComputation()
-
-    override __.Compute cache =
-        let requests = 
-            cache 
-            |> RequestCache.getRequests 10.0
-            |> Seq.groupBy (fun c -> c.Sections.Head)
-            |> Seq.map (fun (section, requests) -> (section, requests, requests |> Seq.length))
-            |> Seq.sortByDescending (fun (_, _, count) -> count)
-            |> Seq.map (fun (section, _, count) -> { Name = section; Value = count })
-            |> Seq.toList
-            |> fun c -> printfn "%A" c
-        ()
-        
-type StatisticsAgent(computations : IStatisticsComputation list) =
+type StatisticsAgent(computations : StatisticComputation list) =
+    let source = ObservableSource<StatisticResult list>()
     let cache = RequestCache()
     let computations = computations
 
-    let rec timer = 
+    let rec timer =
         let rec loop () = async {
             do! Async.Sleep 1000
             let cache = cache.Get
-            for i in computations do
-                i.Compute(cache)
+            let stats = [
+                for i in computations do
+                    yield {
+                        Name = i.Name
+                        Result = i.Computation.Compute(cache) }]
+            source.OnNext stats
             return! loop() }
         loop()
 
@@ -47,3 +31,27 @@ type StatisticsAgent(computations : IStatisticsComputation list) =
 
     member __.Receive request =
         cache.Add request
+
+    member __.AsObservable =
+        source.AsObservable
+
+type RepositoryOperation =
+    | Get of (string * AsyncReplyChannel<StatisticResult option>)
+    | Update of StatisticResult list
+
+type StatisticsRepository() =
+    let agent = Agent.Start(fun inbox -> 
+        let rec loop (data : StatisticResult list) = async {
+            let! msg = inbox.Receive()
+            match msg with
+            | Get (name, reply) ->
+                data |> List.tryFind (fun c -> c.Name = name) |> reply.Reply
+                return! loop data
+            | Update x ->
+                return! loop x
+            return! loop data }
+        loop [])
+
+    member __.Get name = agent.PostAndReply (fun c -> Get(name, c))
+
+    member __.Update results = agent.Post <| Update results
