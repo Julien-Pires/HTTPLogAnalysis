@@ -24,5 +24,20 @@ type ObservableSource<'a>() =
 
     member __.OnNext value =
         !subscribers
-        |> Seq.iter (fun (KeyValue(_, sub)) -> 
+        |> Seq.iter (fun (KeyValue(_, sub)) ->
             sub.OnNext(value))
+
+type Counter(defaultValue) =
+    let locker = obj()
+    let count = ref defaultValue
+
+    member __.Value
+        with get() = !count
+
+    member __.Reset () =
+        lock locker (fun _ ->
+            count := defaultValue)
+
+    member __.Reduce value =
+        lock locker (fun _ ->
+            count := !count - value)

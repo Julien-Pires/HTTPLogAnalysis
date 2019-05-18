@@ -1,8 +1,12 @@
 ﻿namespace Logs
 
+type ComputationRefreshPolicy =
+    | Rate of int
+
 type StatisticComputation = {
     Name : string
-    Computation : IComputation }
+    Computation : IComputation 
+    Refresh : ComputationRefreshPolicy }
 
 type StatisticResult = {
     Name : string
@@ -11,17 +15,24 @@ type StatisticResult = {
 type StatisticsAgent(computations : StatisticComputation list) =
     let source = ObservableSource<StatisticResult list>()
     let cache = RequestCache()
-    let computations = computations
+    let computations =
+        computations
+        |> List.map (fun c -> 
+            match c.Refresh with
+            | Rate x -> (Counter(x), c))
 
-    let rec timer =
+    let timer =
         let rec loop () = async {
             do! Async.Sleep 1000
             let cache = cache.Get
             let stats = [
-                for i in computations do
-                    yield {
-                        Name = i.Name
-                        Result = i.Computation.Compute(cache) }]
+                for (refresh, computation) in computations do
+                    refresh.Reduce 1000
+                    if refresh.Value <= 0 then
+                        refresh.Reset()
+                        yield {
+                            Name = computation.Name
+                            Result = computation.Computation.Compute(cache) }]
             source.OnNext stats
             return! loop() }
         loop()
@@ -41,16 +52,18 @@ type RepositoryOperation =
 
 type StatisticsRepository() =
     let agent = Agent.Start(fun inbox -> 
-        let rec loop (data : StatisticResult list) = async {
+        let rec loop (data : Map<string, StatisticResult>) = async {
             let! msg = inbox.Receive()
             match msg with
             | Get (name, reply) ->
-                data |> List.tryFind (fun c -> c.Name = name) |> reply.Reply
+                data |> Map.tryFind name |> reply.Reply
                 return! loop data
             | Update x ->
-                return! loop x
+                let newData =
+                    x |> List.fold (fun acc c -> acc |> Map.add c.Name c) data
+                return! loop newData
             return! loop data }
-        loop [])
+        loop Map.empty)
 
     member __.Get name = agent.PostAndReply (fun c -> Get(name, c))
 
