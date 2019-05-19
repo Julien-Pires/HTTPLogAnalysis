@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Logs</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Core.fs" />
+    <Compile Include="Data.fs" />
+    <Compile Include="IO.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Cache.fs" />
+    <Compile Include="Computation.fs" />
+    <Compile Include="Statistics.fs" />
+    <Compile Include="Repository.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
+    <PackageReference Include="FSharp.Control.AsyncSeq" Version="2.0.21" />
+  </ItemGroup>
+
+</Project>
