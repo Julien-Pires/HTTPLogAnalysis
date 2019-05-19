@@ -14,3 +14,11 @@ type RankingComputation(key : Request -> obj) =
         |> Seq.sortByDescending (fun (_, _, count) -> count)
         |> Seq.map (fun (key, _, count) -> { Name = string key; Value = string count })
         |> Seq.toList
+
+type SumComputation() =
+    inherit IComputation()
+
+    override __.Compute requests = [{
+        Name = "Total"
+        Value = string(requests |> Seq.length) }]
+        

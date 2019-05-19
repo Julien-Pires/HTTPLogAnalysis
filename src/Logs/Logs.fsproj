@@ -12,8 +12,9 @@
     <Compile Include="Parser.fs" />
     <Compile Include="Cache.fs" />
     <Compile Include="Computation.fs" />
-    <Compile Include="Statistics.fs" />
     <Compile Include="Repository.fs" />
+    <Compile Include="Statistics.fs" />
+    <Compile Include="Alerts.fs" />
   </ItemGroup>
 
   <ItemGroup>

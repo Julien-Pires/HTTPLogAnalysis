@@ -28,6 +28,10 @@ type RequestCache() =
     member __.AsObservable = source.AsObservable
 
 module RequestCache =
-    let getRequestsByFrame timeSpan cache =
-        let datetime = DateTime.Now.AddSeconds(-timeSpan)
-        cache |> Seq.filter(fun c -> c.Date >= datetime)
+    let getRequestsAt (dateTime : DateTime) cache =
+        let dateTime = dateTime.TrimMilliseconds()
+        cache |> Seq.filter(fun c -> c.Date = dateTime)
+    
+    let getRequestsByNow timeSpan cache =
+        let datetime = DateTime.Now.TrimMilliseconds().AddSeconds(-timeSpan)
+        cache |> Seq.takeWhile(fun c -> c.Date >= datetime)

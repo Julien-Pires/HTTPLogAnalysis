@@ -9,15 +9,24 @@ let defaultPath = "/temp/access.log"
 let statistics = [
     {   Name = "most_section_hit"
         Computation = RankingComputation(fun c -> c.Sections.Head :> obj)
-        RequestsFilter = RequestCache.getRequestsByFrame 10.0
-        Update = Tick 10000 }]
+        RequestsFilter = RequestCache.getRequestsByNow 10.0
+        Update = Tick 10000 }
+    {   Name = "requests_per_second"
+        Computation = SumComputation()
+        RequestsFilter = (fun c -> RequestCache.getRequestsAt (DateTime.Now.AddSeconds(-1.0)) c)
+        Update = Tick 1000 }]
 
-let displayConf = [
+let displayConf = Map.ofList [
     ("most_section_hit", {
         Title = Some "Section with most hit (last 10 sec)"
         Headers = ["Section"; "Total hit"]
         Columns = [(fun (c : StatisticItem) -> c.Name); (fun c -> c.Value)]
-        ColumnWidth = 20 }) ] |> Map.ofList
+        ColumnWidth = 20 })
+    ("requests_per_second", {
+        Title = Some "Number of requests (last 1 sec)"
+        Headers = [""; "Total"]
+        Columns = [(fun (c : StatisticItem) -> c.Name); (fun c -> c.Value)]
+        ColumnWidth = 20 })]
 
 [<EntryPoint>]
 let main _ =
