@@ -11,10 +11,17 @@ let statistics = [
         Computation = RankingComputation()
         Refresh = Rate 10000 }]
 
+let displayConf = [
+    ("most_section_hit", {
+        Title = Some "Section with most hit (last 10 sec)"
+        Headers = ["Section"; "Total hit"]
+        Columns = [(fun c -> c.Name); (fun c -> c.Value)]
+        ColumnWidth = 20 }) ] |> Map.ofList
+
 [<EntryPoint>]
 let main _ =
+    let console = ConsoleFormat()
     let repository = StatisticsRepository()
-
     let statisticsAgent = StatisticsAgent(statistics)
 
     let sub =
@@ -24,12 +31,12 @@ let main _ =
     let displayRefresh =
         let rec loop () = async {
             do! Async.Sleep 1000
-            Console.Clear()
             statistics
             |> Seq.map (fun c -> c.Name)
             |> Seq.choose (fun c -> repository.Get c)
-            |> Seq.iter (fun c -> Console.print c.Result)
-
+            |> Seq.iter (fun c ->
+                console.WriteTable c.Result displayConf.[c.Name])
+            console.Output()
             return! loop() }
         loop()
 

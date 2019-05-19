@@ -4,12 +4,9 @@ type ComputationItem = {
     Name : string 
     Value : string }
 
-type ComputationResults =
-    | Multiple of ComputationItem list
-
 [<AbstractClass>]
 type IComputation() =
-    abstract member Compute : CacheContent -> ComputationResults
+    abstract member Compute : CacheContent -> ComputationItem list
 
 type RankingComputation() =
     inherit IComputation()
@@ -22,4 +19,3 @@ type RankingComputation() =
         |> Seq.sortByDescending (fun (_, _, count) -> count)
         |> Seq.map (fun (section, _, count) -> { Name = section; Value = string count })
         |> Seq.toList
-        |> Multiple

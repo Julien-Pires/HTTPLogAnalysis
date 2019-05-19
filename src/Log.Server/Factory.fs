@@ -27,7 +27,7 @@ module LogFactory =
 
     let Logs =
         let rec loop () = asyncSeq {
-            do! Async.Sleep 90
+            do! Async.Sleep 20
             let rnd = Random()
             let address = rnd.Next(0, addresses.Length)
             let user = rnd.Next(0, users.Length)

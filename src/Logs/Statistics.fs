@@ -10,7 +10,7 @@ type StatisticComputation = {
 
 type StatisticResult = {
     Name : string
-    Result : ComputationResults }
+    Result : ComputationItem list }
 
 type StatisticsAgent(computations : StatisticComputation list) =
     let source = ObservableSource<StatisticResult list>()
@@ -51,20 +51,12 @@ type RepositoryOperation =
     | Update of StatisticResult list
 
 type StatisticsRepository() =
-    let agent = Agent.Start(fun inbox -> 
-        let rec loop (data : Map<string, StatisticResult>) = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Get (name, reply) ->
-                data |> Map.tryFind name |> reply.Reply
-                return! loop data
-            | Update x ->
-                let newData =
-                    x |> List.fold (fun acc c -> acc |> Map.add c.Name c) data
-                return! loop newData
-            return! loop data }
-        loop Map.empty)
+    let data = ref (Map.empty : Map<string, StatisticResult>)
 
-    member __.Get name = agent.PostAndReply (fun c -> Get(name, c))
+    member __.Get name =
+        !data |> Map.tryFind name
 
-    member __.Update results = agent.Post <| Update results
+    member __.Update results = 
+        data := 
+            results 
+            |> List.fold (fun acc c -> acc |> Map.add c.Name c) !data
