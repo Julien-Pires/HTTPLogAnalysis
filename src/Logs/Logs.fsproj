@@ -13,6 +13,7 @@
     <Compile Include="Cache.fs" />
     <Compile Include="Computation.fs" />
     <Compile Include="Statistics.fs" />
+    <Compile Include="Repository.fs" />
   </ItemGroup>
 
   <ItemGroup>

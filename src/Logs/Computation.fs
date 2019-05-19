@@ -1,21 +1,16 @@
 ﻿namespace Logs
 
-type ComputationItem = {
-    Name : string 
-    Value : string }
-
 [<AbstractClass>]
 type IComputation() =
-    abstract member Compute : CacheContent -> ComputationItem list
+    abstract member Compute : Request seq -> StatisticItem list
 
-type RankingComputation() =
+type RankingComputation(key : Request -> obj) =
     inherit IComputation()
 
-    override __.Compute cache =
-        cache
-        |> RequestCache.getRequests 10.0
-        |> Seq.groupBy (fun c -> c.Sections.Head)
-        |> Seq.map (fun (section, requests) -> (section, requests, requests |> Seq.length))
+    override __.Compute requests =
+        requests
+        |> Seq.groupBy key
+        |> Seq.map (fun (key, requests) -> (key, requests, requests |> Seq.length))
         |> Seq.sortByDescending (fun (_, _, count) -> count)
-        |> Seq.map (fun (section, _, count) -> { Name = section; Value = string count })
+        |> Seq.map (fun (key, _, count) -> { Name = string key; Value = string count })
         |> Seq.toList

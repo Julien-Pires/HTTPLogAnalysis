@@ -16,3 +16,11 @@ type Request = {
     Sections : string list
     StatusCode : int16
     ResponseSize : int }
+
+type StatisticItem = {
+    Name : string 
+    Value : string }
+
+type StatisticResult = {
+    Name : string
+    Result : StatisticItem list }

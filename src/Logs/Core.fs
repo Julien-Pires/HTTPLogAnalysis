@@ -27,17 +27,20 @@ type ObservableSource<'a>() =
         |> Seq.iter (fun (KeyValue(_, sub)) ->
             sub.OnNext(value))
 
-type Counter(defaultValue) =
+type Timer(target) =
     let locker = obj()
-    let count = ref defaultValue
+    let mutable remaining = target
+    let mutable lastTick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
 
-    member __.Value
-        with get() = !count
+    member __.IsCompleted with get() = remaining <= 0
+
+    member __.Update () =
+        lock locker (fun _ ->
+            let tick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            remaining <- remaining - int(tick - lastTick)
+            lastTick <- tick)
 
     member __.Reset () =
         lock locker (fun _ ->
-            count := defaultValue)
-
-    member __.Reduce value =
-        lock locker (fun _ ->
-            count := !count - value)
+            remaining <- target
+            lastTick <- DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
