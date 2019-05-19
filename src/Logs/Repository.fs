@@ -12,5 +12,5 @@ type StatisticsRepository() =
 
     member __.Update (results : StatisticResult list) = 
         data := 
-            results 
+            results
             |> List.fold (fun acc c -> acc |> Map.add c.Name c) !data

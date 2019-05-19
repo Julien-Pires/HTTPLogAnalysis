@@ -12,25 +12,24 @@ let statistics = [
         RequestsFilter = RequestCache.getRequestsByNow 10.0
         Update = Tick 10000 }
     {   Name = "requests_per_second"
-        Computation = SumComputation()
+        Computation = CountComputation()
         RequestsFilter = (fun c -> RequestCache.getRequestsAt (DateTime.Now.AddSeconds(-1.0)) c)
         Update = Tick 1000 }]
 
-let displayConf = Map.ofList [
-    ("most_section_hit", {
+let outputConfiguration = Map.ofList [
+    ("most_section_hit",  Table {
         Title = Some "Section with most hit (last 10 sec)"
         Headers = ["Section"; "Total hit"]
-        Columns = [(fun (c : StatisticItem) -> c.Name); (fun c -> c.Value)]
+        Columns = [(fun (c : Statistic) -> string c.Values.["Name"]); (fun c -> string c.Values.["Count"])]
         ColumnWidth = 20 })
-    ("requests_per_second", {
+    ("requests_per_second", Table {
         Title = Some "Number of requests (last 1 sec)"
-        Headers = [""; "Total"]
-        Columns = [(fun (c : StatisticItem) -> c.Name); (fun c -> c.Value)]
+        Headers = ["Total"]
+        Columns = [(fun c -> string c.Values.["Count"])]
         ColumnWidth = 20 })]
 
 [<EntryPoint>]
 let main _ =
-    let console = ConsoleFormat()
     let requestsCache = RequestCache()
     let statisticsAgent = StatisticsAgent(requestsCache, statistics)
     let repository = StatisticsRepository()
@@ -41,12 +40,10 @@ let main _ =
     let displayRefresh =
         let rec loop () = async {
             do! Async.Sleep 1000
-            statistics
-            |> Seq.map (fun c -> c.Name)
-            |> Seq.choose (fun c -> repository.Get c)
-            |> Seq.iter (fun c ->
-                console.WriteTable c.Result displayConf.[c.Name])
-            console.Output()
+            let stats = 
+                statistics
+                |> Seq.choose (fun c -> repository.Get c.Name)
+            Output.display outputConfiguration stats
             return! loop() }
         loop()
 

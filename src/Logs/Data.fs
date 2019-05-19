@@ -17,10 +17,9 @@ type Request = {
     StatusCode : int16
     ResponseSize : int }
 
-type StatisticItem = {
-    Name : string 
-    Value : string }
+type Statistic = {
+    Values : Map<string, obj> }
 
 type StatisticResult = {
     Name : string
-    Result : StatisticItem list }
+    Result : Statistic list }

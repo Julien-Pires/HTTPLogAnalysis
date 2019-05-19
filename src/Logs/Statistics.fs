@@ -1,7 +1,5 @@
 ﻿namespace Logs
 
-open System
-
 type UpdatePolicy =
     | Tick of int
 

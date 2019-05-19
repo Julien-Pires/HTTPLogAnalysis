@@ -2,12 +2,16 @@
 
 open System
 open System.Text
+open Logs
 
-type TableConfiguration<'a> = {
+type TableConfiguration = {
     Title : string option 
-    Headers : string list 
-    Columns : ('a -> string) list
+    Headers : string list
+    Columns : (Statistic -> string) list
     ColumnWidth : int }
+
+type DisplayConfiguration =
+    | Table of TableConfiguration
 
 module TableFormatting = 
     let appendSeparator (separator : char) repeat (builder : StringBuilder) =
@@ -53,7 +57,7 @@ type ConsoleFormat() =
     member __.WriteTable statistics configuration =
         TableFormatting.output statistics configuration builder |> ignore
 
-    member __.Output() =
+    member __.Write () =
         Console.Clear()
         Console.WriteLine(builder.ToString())
         builder.Clear() |> ignore

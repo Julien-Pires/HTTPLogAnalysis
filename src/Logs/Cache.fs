@@ -22,9 +22,7 @@ type RequestCache() =
         loop [])
 
     member __.Add request = agent.Post (Add request)
-
     member __.Get = agent.PostAndReply Get
-
     member __.AsObservable = source.AsObservable
 
 module RequestCache =
