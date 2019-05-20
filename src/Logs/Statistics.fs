@@ -5,8 +5,8 @@ type UpdatePolicy =
 
 type StatisticComputation = {
     Name : string
-    Computation : Request seq -> Statistic list
-    RequestsFilter : Request List -> Request seq
+    Computation : Request list -> Statistic list
+    RequestsFilter : RequestCache -> Request list
     Update : UpdatePolicy }
 
 type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list) =
@@ -20,13 +20,12 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
     let timer =
         let rec loop () = async {
             do! Async.Sleep 1000
-            let requests = cache.Get
             let stats = [
                 for (timer, computation) in computations do
                     timer.Update()
                     if timer.IsCompleted then
                         timer.Reset()
-                        let requests = requests |> computation.RequestsFilter
+                        let requests = computation.RequestsFilter cache
                         yield {
                             Name = computation.Name
                             Result = computation.Computation requests }]
