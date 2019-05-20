@@ -19,8 +19,8 @@ module Configuration =
     
     let alerts = [
         {   Name = "requests_limit"
-            Rule = AlertAgent(120, 10)
-            StatisticName = "requests_per_second" }]
+            Statistic = "requests_per_second"
+            Rule = AlertMonitoring.thresholdReached 120 10 "Count" }]
 
     let display = Map.ofList [
         ("most_section_hit",  Table {
