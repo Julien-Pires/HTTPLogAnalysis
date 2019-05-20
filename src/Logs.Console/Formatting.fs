@@ -57,6 +57,9 @@ type ConsoleFormat() =
     member __.WriteTable statistics configuration =
         TableFormatting.output statistics configuration builder |> ignore
 
+    member __.WriteAlert (alert : AlertResponse) =
+        builder.Append(alert.ToString()) |> ignore
+
     member __.Write () =
         Console.Clear()
         Console.WriteLine(builder.ToString())

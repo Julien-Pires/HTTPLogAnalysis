@@ -1,13 +1,7 @@
 ﻿namespace Logs
 
-[<AbstractClass>]
-type IComputation() =
-    abstract member Compute : Request seq -> Statistic list
-
-type RankingComputation(key : Request -> obj) =
-    inherit IComputation()
-
-    override __.Compute requests =
+module Computation =
+    let rank key requests =
         requests
         |> Seq.groupBy key
         |> Seq.map (fun (key, requests) -> {
@@ -17,9 +11,6 @@ type RankingComputation(key : Request -> obj) =
         |> Seq.sortByDescending (fun c -> c.Values.["Count"] :?> int)
         |> Seq.toList
 
-type CountComputation() =
-    inherit IComputation()
-
-    override __.Compute requests = [{
+    let count requests = [{
         Values = Map.ofList <| [("Count", (Seq.length requests) :> obj)] }]
         

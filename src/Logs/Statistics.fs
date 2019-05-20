@@ -5,7 +5,7 @@ type UpdatePolicy =
 
 type StatisticComputation = {
     Name : string
-    Computation : IComputation
+    Computation : Request seq -> Statistic list
     RequestsFilter : Request List -> Request seq
     Update : UpdatePolicy }
 
@@ -29,7 +29,7 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
                         let requests = requests |> computation.RequestsFilter
                         yield {
                             Name = computation.Name
-                            Result = computation.Computation.Compute requests }]
+                            Result = computation.Computation requests }]
             source.OnNext stats
             return! loop() }
         loop()
