@@ -5,8 +5,8 @@ open FSharpx.Collections
 
 type CacheAction =
     | Add of Request
-    | GetFrame of int64 * AsyncReplyChannel<Request list option>
-    | GetRange of int64 * int64 * AsyncReplyChannel<Request list option>
+    | GetFrame of int64 * AsyncReplyChannel<Request seq>
+    | GetRange of int64 * int64 * AsyncReplyChannel<Request seq>
 
 type Cache = {
     Requests : Queue<Request>
@@ -27,23 +27,32 @@ type RequestCache() =
                     Requests = state.Requests.Conj request
                     TimeFrames = state.TimeFrames |> Map.add timestamp requests }
             | GetFrame (time, reply) ->
-                reply.Reply <| Map.tryFind time state.TimeFrames
+                let requests =
+                    match Map.tryFind time state.TimeFrames with
+                    | Some x -> x
+                    | None -> []
+                reply.Reply requests
                 return! loop state
             | GetRange (startTime, endTime, reply) ->
-                reply.Reply <| None
+                let requests = seq {
+                    for i in startTime ..endTime do
+                        match Map.tryFind i state.TimeFrames with
+                        | Some x -> yield! x
+                        | None -> yield! [] }
+                reply.Reply requests
                 return! loop state }
         loop { Requests = Queue.empty; TimeFrames = Map.empty })
 
     member __.Add request = agent.Post (Add request)
     member __.GetFrame time = agent.PostAndReply (fun c -> GetFrame(time, c))
+    member __.GetRange startFrame endFrame = agent.PostAndReply (fun c -> GetRange(startFrame, endFrame, c))
 
 module RequestCache =
     let getRequestsAt dateTime (cache : RequestCache) =
         let dateTime = DateTimeOffset(dateTime).ToUnixTimeSeconds()
-        match cache.GetFrame dateTime with
-        | Some x -> x
-        | None -> []
+        cache.GetFrame dateTime
     
-    let getRequestsByNow timeSpan cache = []
-        //let datetime = DateTime.Now.TrimMilliseconds().AddSeconds(-timeSpan)
-        //cache |> Seq.takeWhile(fun c -> c.Date >= datetime)
+    let getRequestsByNow timeSpan (cache : RequestCache) =
+        let endFrame = DateTimeOffset(DateTime.Now).ToUnixTimeSeconds()
+        let startFrame = endFrame - timeSpan
+        cache.GetRange startFrame endFrame

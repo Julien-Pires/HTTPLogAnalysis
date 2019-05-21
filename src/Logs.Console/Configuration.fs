@@ -9,7 +9,7 @@ module Configuration =
     let statistics = [
         {   Name = "most_section_hit"
             Computation = Computation.rank (fun c -> c.Sections.Head :> obj)
-            RequestsFilter = RequestCache.getRequestsByNow 10.0
+            RequestsFilter = RequestCache.getRequestsByNow 10L
             Update = Tick 10000 }
 
         {   Name = "requests_per_second"

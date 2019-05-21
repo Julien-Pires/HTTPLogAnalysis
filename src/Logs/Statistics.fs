@@ -5,8 +5,8 @@ type UpdatePolicy =
 
 type StatisticComputation = {
     Name : string
-    Computation : Request list -> Statistic list
-    RequestsFilter : RequestCache -> Request list
+    Computation : Request seq -> Statistic list
+    RequestsFilter : RequestCache -> Request seq
     Update : UpdatePolicy }
 
 type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list) =
