@@ -5,20 +5,25 @@
     <AssemblyName>Logs</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="Core.fs" />
     <Compile Include="Data.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Cache.fs" />
-    <Compile Include="Computation.fs" />
     <Compile Include="Statistics.fs" />
+    <Compile Include="Alerts.fs" />
     <Compile Include="Repository.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FParsec" Version="1.0.3" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="2.0.21" />
+    <PackageReference Include="FSharpx.Collections" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

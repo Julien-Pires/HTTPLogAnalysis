@@ -19,6 +19,7 @@ module File =
             yield! read stream }
         asyncSeq {
             use file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+            file.Seek(file.Length, SeekOrigin.Begin) |> ignore
             use reader = new StreamReader(file)
             yield! read reader }
 

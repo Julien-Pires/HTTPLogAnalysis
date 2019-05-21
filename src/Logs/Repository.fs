@@ -1,16 +1,24 @@
 ﻿namespace Logs
 
-type RepositoryOperation =
-    | Get of (string * AsyncReplyChannel<StatisticResult option>)
-    | Update of StatisticResult list
+type RepositoryOperation<'a> =
+    | Get of (string * AsyncReplyChannel<'a option>)
+    | Add of (string * 'a) seq
 
-type StatisticsRepository() =
-    let data = ref (Map.empty : Map<string, StatisticResult>)
+type Repository<'a>() =
+    let agent = Agent.Start(fun inbox ->
+        let rec loop data = async {
+            let! msg = inbox.Receive()
+            match msg with
+            | Get (key, reply) ->
+                data |> Map.tryFind key |> reply.Reply
+                return! loop data
+            | Add values ->
+                let newData =
+                    values |> Seq.fold (fun acc (key, value) -> acc |> Map.add key value) data
+                return! loop newData
+            return! loop data }
+        loop Map.empty<string, 'a>)
 
-    member __.Get name =
-        !data |> Map.tryFind name
+    member __.Get key = agent.PostAndReply (fun c -> Get(key, c))
 
-    member __.Update (results : StatisticResult list) = 
-        data := 
-            results 
-            |> List.fold (fun acc c -> acc |> Map.add c.Name c) !data
+    member __.Add results = agent.Post <| Add results

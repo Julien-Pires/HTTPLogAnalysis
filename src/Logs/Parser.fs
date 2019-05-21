@@ -68,10 +68,7 @@ module LogParser =
                 Address = ip
                 Date = date
                 User = user
-                Method = RequestMethod.GET
-                Sections = sections 
-                StatusCode = 200s
-                ResponseSize = 0 })
+                Sections = sections })
 
     let parse logEntry =
         run parseLog logEntry

@@ -1,14 +1,12 @@
 ﻿namespace Logs
 
-open System
-
 type UpdatePolicy =
     | Tick of int
 
 type StatisticComputation = {
     Name : string
-    Computation : IComputation
-    RequestsFilter : Request List -> Request seq
+    Computation : Request seq -> Statistic list
+    RequestsFilter : RequestCache -> Request seq
     Update : UpdatePolicy }
 
 type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list) =
@@ -19,25 +17,38 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
             match c.Update with
             | Tick x -> (Timer(x), c))
 
-    let timer =
+    let computeStatistics =
         let rec loop () = async {
             do! Async.Sleep 1000
-            let requests = cache.Get
-            let stats = [
+            let statistics = [
                 for (timer, computation) in computations do
                     timer.Update()
                     if timer.IsCompleted then
                         timer.Reset()
-                        let requests = requests |> computation.RequestsFilter
+                        let requests = computation.RequestsFilter cache
                         yield {
                             Name = computation.Name
-                            Result = computation.Computation.Compute requests }]
-            source.OnNext stats
+                            Result = computation.Computation requests }]
+            source.OnNext statistics
             return! loop() }
         loop()
 
     do
-        timer |> Async.Start
+        computeStatistics |> Async.Start
 
     member __.AsObservable =
         source.AsObservable
+
+module Statistics =
+    let rank key requests =
+        requests
+        |> Seq.groupBy key
+        |> Seq.map (fun (key, requests) -> {
+            Values = Map.ofList <| [
+            ("Name", key)
+            ("Count", (Seq.length requests) :> obj)] })
+        |> Seq.sortByDescending (fun c -> c.Values.["Count"] :?> int)
+        |> Seq.toList
+
+    let count requests = [{
+        Values = Map.ofList <| [("Count", (Seq.length requests) :> obj)] }]
