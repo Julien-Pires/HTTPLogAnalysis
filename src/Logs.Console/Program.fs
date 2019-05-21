@@ -6,7 +6,7 @@ open Logs.Console
 
 [<EntryPoint>]
 let main _ =
-    let requestsCache = RequestCache()
+    let requestsCache = RequestCache(60.0)
     let statisticsAgent = StatisticsAgent(requestsCache, Configuration.statistics)
     let alertsMonitoring = AlertMonitoring(Configuration.alerts)
     let statsRepository = Repository<StatisticResult>()

@@ -6,6 +6,10 @@
     <AssemblyName>Logs.Console</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Formatting.fs" />
     <Compile Include="Output.fs" />

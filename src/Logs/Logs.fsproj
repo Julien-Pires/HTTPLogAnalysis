@@ -5,6 +5,10 @@
     <AssemblyName>Logs</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Data.fs" />
     <Compile Include="Core.fs" />
