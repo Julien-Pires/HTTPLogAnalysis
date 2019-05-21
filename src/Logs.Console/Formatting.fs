@@ -10,10 +10,9 @@ type TableConfiguration = {
     Columns : (Statistic -> string) list
     ColumnWidth : int }
 
-type DisplayConfiguration =
-    | Table of TableConfiguration
-
 module TableFormatting = 
+    let private noData = "No Data Available"
+
     let appendSeparator (separator : char) repeat (builder : StringBuilder) =
         builder.Append(separator, repeat)
                .AppendLine()
@@ -38,9 +37,15 @@ module TableFormatting =
                .Append(' ', width - value.Length)) builder
         |> fun c -> c.AppendLine()
 
-    let appendLines items columns width builder =
-        items
-        |> List.fold (fun acc c -> appendLine c columns width acc) builder
+    let appendLines items (columns : ('a -> string) list) width (builder : StringBuilder) =
+        match items with
+        | [] -> 
+            builder.Append(' ', (columns.Length * width) / 2 - (noData.Length / 2))
+                   .Append(noData)
+                   .Append(' ', (columns.Length * width) / 2 - (noData.Length / 2))
+        | _ ->
+            items
+            |> List.fold (fun acc c -> appendLine c columns width acc) builder
 
     let output items configuration builder =
         let count = configuration.Headers |> List.length
@@ -50,17 +55,4 @@ module TableFormatting =
         |> appendHeaders configuration.Headers configuration.ColumnWidth
         |> appendSeparator '-' (count * configuration.ColumnWidth)
         |> appendLines items configuration.Columns configuration.ColumnWidth
-
-type ConsoleFormat() =
-    let builder = StringBuilder()
-
-    member __.WriteTable statistics configuration =
-        TableFormatting.output statistics configuration builder |> ignore
-
-    member __.WriteAlert (alert : AlertResponse) =
-        builder.Append(alert.ToString()) |> ignore
-
-    member __.Write () =
-        Console.Clear()
-        Console.WriteLine(builder.ToString())
-        builder.Clear() |> ignore
+        |> fun c -> c.AppendLine()
