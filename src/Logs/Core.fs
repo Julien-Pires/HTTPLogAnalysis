@@ -1,7 +1,6 @@
 ﻿namespace Logs
 
 open System
-open System.Runtime.CompilerServices
 
 type ObservableSource<'a>() =
     let subscribers = ref (Map.empty : Map<int, IObserver<'a>>)
@@ -45,9 +44,3 @@ type Timer(target) =
         lock locker (fun _ ->
             remaining <- target
             lastTick <- DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
-
-[<Extension>]
-type DateTime =
-    [<Extension>]
-    static member inline TrimMilliseconds(dt : System.DateTime) =
-        dt.AddTicks(-dt.Ticks % TimeSpan.TicksPerSecond)

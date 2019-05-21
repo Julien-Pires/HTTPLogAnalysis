@@ -37,18 +37,18 @@ module AlertMonitoring =
             | Update (stats, reply) ->
                 let currentValues = state.Values
                 let stat = stats.Result.Head.Values.[key] :?> int
-                let newQueue = 
+                let newValues = 
                     if currentValues.Length > timeRange then 
                         currentValues.Tail.Conj stat
                     else
                         currentValues.Conj stat
-                let newValue = (newQueue |> Seq.sum) / newQueue.Length
-                let newStatus = if newValue > threshold then Triggered else Cleared
+                let result = (newValues |> Seq.sum) / newValues.Length
+                let newStatus = if result > threshold then Triggered else Cleared
                 if newStatus <> state.PreviousStatus then
                     reply.Reply <| Some newStatus
                 else
                     reply.Reply None
-                return! loop { Values = newQueue; PreviousStatus = newStatus }
+                return! loop { Values = newValues; PreviousStatus = newStatus }
             return! loop state }
         loop { Values = Queue.empty; PreviousStatus = Cleared })
 

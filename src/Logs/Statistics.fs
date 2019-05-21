@@ -17,10 +17,10 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
             match c.Update with
             | Tick x -> (Timer(x), c))
 
-    let timer =
+    let computeStatistics =
         let rec loop () = async {
             do! Async.Sleep 1000
-            let stats = [
+            let statistics = [
                 for (timer, computation) in computations do
                     timer.Update()
                     if timer.IsCompleted then
@@ -29,12 +29,12 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
                         yield {
                             Name = computation.Name
                             Result = computation.Computation requests }]
-            source.OnNext stats
+            source.OnNext statistics
             return! loop() }
         loop()
 
     do
-        timer |> Async.Start
+        computeStatistics |> Async.Start
 
     member __.AsObservable =
         source.AsObservable
