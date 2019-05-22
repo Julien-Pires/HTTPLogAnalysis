@@ -12,13 +12,13 @@ module Data =
         "Sauron"
         "Bilbo"
         "Saruman"
-        "Tom Bombadil"|]
+        "TomBombadil"|]
 
     let sections = [|
         "/"
         "/favicon.ico"
-        "resources/quest.pdf"
-        "resources/dungeon.pdf"
+        "/resources/quest.pdf"
+        "/resources/dungeon.pdf"
         "/resources/mordor.png"
         "/resources/photo.png"
         "/pages/spells.html"

@@ -16,6 +16,15 @@ module LogParser =
     let private timeDelimiter = skipChar ':'
     let private sectionDelimiter = skipChar '/'
 
+    let pipe7 p1 p2 p3 p4 p5 p6 p7 f =
+        p1 >>= fun x1 ->
+         p2 >>= fun x2 ->
+          p3 >>= fun x3 ->
+           p4 >>= fun x4 ->
+            p5 >>= fun x5 ->
+             p6 >>= fun x6 ->
+              p7 >>= fun x7 -> preturn (f x1 x2 x3 x4 x5 x6 x7)
+
     let private parseDate : Parser<_> =
         pipe3 pint32 
               (dateDelimiter >>. many1Chars (noneOf "/") .>> dateDelimiter) 
@@ -73,19 +82,29 @@ module LogParser =
     let private parseHTTPQuery : Parser<_> = 
         between (pchar '"') (pchar '"') parseQuery
 
+    let private parseHTTPCode : Parser<_> =
+        pint32
+
+    let private parseResponseSize : Parser<_> =
+        pint32
+
     let private parseLog : Parser<_> =
-        pipe5 (parseIP) 
+        pipe7 (parseIP) 
               (ws >>. parseHTTPIdent .>> ws) 
               (ws >>. parseHTTPUser .>> ws) 
-              (parseHTTPDateTime .>> ws) 
-              parseHTTPQuery
-              (fun ip _ user date sections -> (ip, user, date, sections))
+              (ws >>. parseHTTPDateTime .>> ws) 
+              (ws >>. parseHTTPQuery .>> ws)
+              (ws >>. parseHTTPCode .>> ws)
+              (ws >>. parseResponseSize .>> ws)
+              (fun ip _ user date sections code size -> (ip, user, date, sections, code, size))
 
     let parse logEntry =
         match run parseLog logEntry with
-        | Success ((ip, user, date, sections), _, _) -> Some {
-            Address = String.Intern(ip) 
+        | Success ((ip, user, date, sections, code, size), _, _) -> Some {
+            Address = String.Intern(ip)
             User = String.Intern(user)
             Date = date
-            Sections = sections |> List.map (fun c -> String.Intern("/" + c)) }
+            Sections = sections |> List.map (fun c -> String.Intern("/" + c))
+            HTTPCode = code
+            ResponseSize = size }
         | _ -> None

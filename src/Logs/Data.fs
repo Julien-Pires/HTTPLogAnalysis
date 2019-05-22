@@ -8,7 +8,9 @@ type Request = {
     Address : string
     Date : DateTime
     User : string
-    Sections : string List }
+    Sections : string List
+    HTTPCode : int
+    ResponseSize : int }
 
 type Statistic = {
     Values : Map<string, obj> }
