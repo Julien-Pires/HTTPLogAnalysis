@@ -63,12 +63,14 @@ module LogParser =
         between (pchar '"') (pchar '"') parseQuery
 
     let private parseLog : Parser<_> =
-        pipe5 (parseIP .>> ws) (parseHTTPIdent .>> ws) (parseHTTPUser .>> ws) (parseHTTPDateTime .>> ws) parseHTTPQuery (
-            fun ip _ user date sections -> {
-                Address = ip
-                Date = date
-                User = user
-                Sections = sections })
+        pipe5 (parseIP .>> ws) (parseHTTPIdent .>> ws) (parseHTTPUser .>> ws) (parseHTTPDateTime .>> ws) parseHTTPQuery <|
+            fun ip _ user date sections -> (ip, user, date, sections)
 
     let parse logEntry =
-        run parseLog logEntry
+        match run parseLog logEntry with
+        | Success ((ip, user, date, sections), _, _) -> Some {
+            Address = String.Intern(ip) 
+            User = String.Intern(user)
+            Date = date
+            Sections = sections |> List.map String.Intern }
+        | _ -> None

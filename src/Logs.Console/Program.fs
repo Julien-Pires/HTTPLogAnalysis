@@ -34,8 +34,7 @@ let main _ =
         loop()
 
     File.readContinuously Configuration.defaultPath
-    |> AsyncSeq.map LogParser.parse
-    |> AsyncSeq.choose (function | Success(x, _, _) -> Some x | _ -> None)
+    |> AsyncSeq.choose LogParser.parse
     |> AsyncSeq.iter requestsCache.Add
     |> Async.Start
 
