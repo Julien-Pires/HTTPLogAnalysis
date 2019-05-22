@@ -15,7 +15,7 @@ module File =
         let rec read (stream : StreamReader) = asyncSeq {
             for i in readLines stream do
                 yield i
-            do! Async.Sleep 100
+            do! Async.Sleep 20
             yield! read stream }
         asyncSeq {
             let file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)

@@ -40,7 +40,7 @@ type RequestCache(lifetime) =
                 let thresholdDate = now.AddSeconds(-lifetime).ToUnixTimeSeconds()
                 state.TimeFrames
                 |> Seq.fold (fun acc c -> 
-                    if c.Key <= thresholdDate then 
+                    if c.Key < thresholdDate then 
                         acc |> Map.remove c.Key
                     else 
                         acc) state.TimeFrames
@@ -59,6 +59,7 @@ type RequestCache(lifetime) =
             | GetRange (startTime, endTime, reply) ->
                 reply.Reply <| getRange startTime endTime
                 return! loop state }
+
         loop { TimeFrames = Map.empty }
 
     let clearOldRequests =

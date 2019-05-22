@@ -15,8 +15,8 @@ type Repository<'a>() =
             | Add values ->
                 let newData =
                     values |> Seq.fold (fun acc (key, value) -> acc |> Map.add key value) data
-                return! loop newData
-            return! loop data }
+                return! loop newData }
+
         loop Map.empty<string, 'a>)
 
     member __.Get key = agent.PostAndReply (fun c -> Get(key, c))
