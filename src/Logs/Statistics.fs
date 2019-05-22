@@ -1,5 +1,7 @@
 ﻿namespace Logs
 
+open FSharpx.Control
+
 type UpdatePolicy =
     | Tick of int
 

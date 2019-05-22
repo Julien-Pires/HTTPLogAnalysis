@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="Data.fs" />
     <Compile Include="Core.fs" />
+    <Compile Include="Observable.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Cache.fs" />

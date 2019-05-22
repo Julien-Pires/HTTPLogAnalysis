@@ -4,7 +4,7 @@ open System
 open Logs
 
 module Configuration =
-    let defaultPath = "/temp/access.log"
+    let defaultPath = @"/temp/access.log"
 
     let statistics = [
         {   Name = "most_section_hit"
