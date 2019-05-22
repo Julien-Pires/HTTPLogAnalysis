@@ -10,13 +10,17 @@ let defaultRequests = 1
 
 [<EntryPoint>]
 let main argv =
+    let argsMap = ArgumentsParser.parse argv
+
     printfn "HTTP Access log simulator"
 
     let mutable sourceToken = new CancellationTokenSource()
 
+    let path = match argsMap |> Map.tryFind 'f' with | Some x -> x | None -> defaultPath
     let generateLogs interval requests =
         let work () = async {
-            do! File.writeContinuously defaultPath (LogFactory.Logs interval requests) }
+            let logsGenerator = LogFactory.Logs interval requests
+            do! File.writeContinuously path logsGenerator }
         let source = new CancellationTokenSource()
         Async.Start(work(), source.Token)
         source

@@ -11,10 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Arguments.fs" />
     <Compile Include="Formatting.fs" />
     <Compile Include="Output.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
