@@ -15,43 +15,49 @@ type Cache = {
 type RequestCache(lifetime) =
     let agent = Agent.Start <| fun inbox ->
         let rec loop (state : Cache) = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Add request ->
-                let timestamp = DateTimeOffset(request.Date).ToUnixTimeSeconds()
+            let now = DateTimeOffset(DateTime.Now)
+
+            let inline add request =
+                let timestamp = now.ToUnixTimeSeconds()
                 let requests =
                     match state.TimeFrames.TryFind timestamp with
                     | Some x -> request::x
                     | None -> [request]
-                let newTimeFrames = state.TimeFrames |> Map.add timestamp requests
-                return! loop { TimeFrames = newTimeFrames }
+                state.TimeFrames |> Map.add timestamp requests
 
-            | Clear ->
-                let thresholdDate = DateTimeOffset(DateTime.Now).AddSeconds(-lifetime).ToUnixTimeSeconds()
-                let newTimeFrames =
-                    state.TimeFrames
-                    |> Seq.fold (fun acc c -> 
-                        if c.Key > thresholdDate then 
-                            acc 
-                        else 
-                            acc |> Map.remove c.Key) state.TimeFrames
-                return! loop { state with TimeFrames = newTimeFrames }
+            let inline getFrame time =
+                match Map.tryFind time state.TimeFrames with
+                | Some x -> x
+                | None -> []
 
+            let inline getRange startTime endTime = seq {
+                for i in startTime ..endTime do
+                    match Map.tryFind i state.TimeFrames with
+                    | Some x -> yield! x
+                    | None -> yield! [] }
+
+            let clear () = 
+                let thresholdDate = now.AddSeconds(-lifetime).ToUnixTimeSeconds()
+                state.TimeFrames
+                |> Seq.fold (fun acc c -> 
+                    if c.Key <= thresholdDate then 
+                        acc |> Map.remove c.Key
+                    else 
+                        acc) state.TimeFrames
+
+            let! msg = inbox.Receive()
+            match msg with
+            | Add request -> 
+                let requests = add request
+                return! loop { TimeFrames = requests }
+            | Clear -> 
+                let requests = clear()
+                return! loop { TimeFrames = requests }
             | GetFrame (time, reply) ->
-                let requests =
-                    match Map.tryFind time state.TimeFrames with
-                    | Some x -> x
-                    | None -> []
-                reply.Reply requests
+                reply.Reply <| getFrame time
                 return! loop state
-
             | GetRange (startTime, endTime, reply) ->
-                let requests = seq {
-                    for i in startTime ..endTime do
-                        match Map.tryFind i state.TimeFrames with
-                        | Some x -> yield! x
-                        | None -> yield! [] }
-                reply.Reply requests
+                reply.Reply <| getRange startTime endTime
                 return! loop state }
         loop { TimeFrames = Map.empty }
 

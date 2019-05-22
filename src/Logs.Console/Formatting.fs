@@ -22,14 +22,17 @@ module TableFormatting =
 
     let appendHeaders (headers : string list) width (builder : StringBuilder) =
         headers
-        |> List.fold (fun (acc : StringBuilder) c -> acc.Append(c).Append(' ', width - c.Length)) builder
+        |> List.fold (fun (acc : StringBuilder) c -> 
+            acc.Append(c)
+               .Append(' ', width - c.Length)) builder
         |> fun c -> c.AppendLine()
 
     let appendLine item (columns : ('a -> string) list) width (builder : StringBuilder) =
         columns
         |> List.fold(fun (acc : StringBuilder) selector ->
             let value = selector item
-            acc.Append(value).Append(' ', width - value.Length)) builder
+            acc.Append(value)
+               .Append(' ', width - value.Length)) builder
         |> fun c -> c.AppendLine()
 
     let appendLines items (columns : ('a -> string) list) width (builder : StringBuilder) =

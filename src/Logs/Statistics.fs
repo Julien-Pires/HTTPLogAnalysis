@@ -20,16 +20,24 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
     let computeStatistics =
         let rec loop () = async {
             do! Async.Sleep 1000
-            let statistics = [
-                for (timer, computation) in computations do
-                    timer.Update()
-                    if timer.IsCompleted then
-                        timer.Reset()
-                        let requests = computation.RequestsFilter cache
-                        yield {
-                            Name = computation.Name
-                            Result = computation.Computation requests }]
+            computations |> List.iter (fun (timer, _) -> timer.Update())
+
+            let statistics =
+                computations
+                |> List.choose (fun (timer, computation) ->
+                    match timer.IsCompleted with
+                    | true ->
+                        let { RequestsFilter = filter; Computation = compute } = computation
+                        {   Name = computation.Name
+                            Result = compute <| filter cache } |> Some
+                    |false -> None)
+
+            computations 
+            |> Seq.filter (fun (timer, _) -> timer.IsCompleted)
+            |> Seq.iter (fun (timer, _) -> timer.Reset())
+
             source.OnNext statistics
+
             return! loop() }
         loop()
 

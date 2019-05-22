@@ -7,8 +7,7 @@ type AlertStatus =
     | Triggered
     | Cleared
 
-type AlertMessage =
-    | Update of (StatisticResult * AsyncReplyChannel<AlertStatus option>)
+type AlertMessage = StatisticResult * AsyncReplyChannel<AlertStatus option>
 
 type AlertMonitoringState = {
     Values : Queue<int> 
@@ -32,24 +31,26 @@ type AlertResponse = {
 module AlertMonitoring =
     let thresholdReached timeRange threshold key = (fun (inbox : Agent<AlertMessage>) ->
         let rec loop (state : AlertMonitoringState) = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Update (stats, reply) ->
-                let currentValues = state.Values
-                let stat = stats.Result.Head.Values.[key] :?> int
-                let newValues = 
-                    if currentValues.Length > timeRange then 
-                        currentValues.Tail.Conj stat
-                    else
-                        currentValues.Conj stat
-                let result = (newValues |> Seq.sum) / newValues.Length
-                let newStatus = if result > threshold then Triggered else Cleared
-                if newStatus <> state.PreviousStatus then
-                    reply.Reply <| Some newStatus
+            let updateValues newValue =
+                if state.Values.Length > timeRange then 
+                    state.Values.Tail.Conj newValue
                 else
-                    reply.Reply None
-                return! loop { Values = newValues; PreviousStatus = newStatus }
-            return! loop state }
+                    state.Values.Conj newValue
+
+            let! (statistic, reply) = inbox.Receive()
+
+            let newValues = updateValues (statistic.Result.Head.Values.[key] :?> int)
+            let average = (newValues |> Seq.sum) / newValues.Length
+            let newStatus = 
+                if average > threshold then
+                    Triggered 
+                else
+                    Cleared
+            if newStatus <> state.PreviousStatus then
+                reply.Reply <| Some newStatus
+            else
+                reply.Reply None
+            return! loop { Values = newValues; PreviousStatus = newStatus } }
         loop { Values = Queue.empty; PreviousStatus = Cleared })
 
 type AlertMonitoring (alerts : AlertConfiguration list) =
@@ -69,7 +70,7 @@ type AlertMonitoring (alerts : AlertConfiguration list) =
         | None -> None
 
     let updateAgent statistic agent =
-        let response = agent.Agent.PostAndReply (fun c -> Update(statistic, c))
+        let response = agent.Agent.PostAndReply (fun c -> statistic, c)
         match response with
         | Some x -> Some {
             Name = agent.Name 
