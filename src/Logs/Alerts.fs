@@ -29,7 +29,7 @@ type AlertResponse = {
     Date : DateTime }
 
 module AlertMonitoring =
-    let thresholdReached timeRange threshold key = (fun (inbox : Agent<AlertMessage>) ->
+    let thresholdReached timeRange threshold compare key = (fun (inbox : Agent<AlertMessage>) ->
         let rec loop (state : AlertMonitoringState) = async {
             let updateValues newValue =
                 if state.Values.Length > timeRange then 
@@ -38,14 +38,12 @@ module AlertMonitoring =
                     state.Values.Conj newValue
 
             let! (statistic, reply) = inbox.Receive()
-
             let newValues = updateValues (statistic.Result.Head.Values.[key] :?> int)
             let average = (newValues |> Seq.sum) / newValues.Length
             let newStatus = 
-                if average > threshold then
-                    Triggered 
-                else
-                    Cleared
+                match compare average threshold with
+                | true -> Triggered 
+                | false -> Cleared
             if newStatus <> state.PreviousStatus then
                 reply.Reply <| Some newStatus
             else

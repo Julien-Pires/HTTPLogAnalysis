@@ -21,6 +21,13 @@ type Counter(target) =
             remaining <- target
             lastTick <- DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
 
+module Operator =
+    let equal = (=)
+    let superior = (>)
+    let superiorOrEqual = (>=)
+    let inferior = (<)
+    let inferiorOrEqual = (<=)
+
 [<Extension>]
 type DateTime() =
     [<Extension>]
