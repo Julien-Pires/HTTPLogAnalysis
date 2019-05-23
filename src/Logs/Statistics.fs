@@ -2,15 +2,22 @@
 
 open FSharpx.Control
 
+/// <summary>Represents the update policy used for computing a statistic</summary>
 type UpdatePolicy =
     | Tick of int
 
+/// <summary>Represents a statistic to compute</summary>
 type StatisticComputation = {
     Name : string
     Computation : Request seq -> Statistic list
     RequestsFilter : RequestCache -> Request seq
     Update : UpdatePolicy }
 
+/// <summary>
+/// Represents an agent that computes a set of statistics.
+/// Each statistic are computed according to their own update policy.
+/// The refreshRate parameter allow to customize at which speed the agent check for computing statistics.
+///</summary>
 type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list, refreshRate) =
     let source = ObservableSource<StatisticResult list>()
     let computations =
@@ -19,6 +26,7 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
             match c.Update with
             | Tick x -> (Counter(x), c))
 
+    /// <summary>Represents an asynchronous task that computes statistics perdiodically</summary>
     let refreshStatistics =
         let rec loop () = async {
             do! Async.Sleep refreshRate
@@ -45,9 +53,12 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
     do
         refreshStatistics |> Async.Start
 
+    /// <summary>Returns this instance as an observable object</summary>
     member __.AsObservable with get() = source.AsObservable
 
+/// <summary>Contains methods to compute statistics</summary>
 module Statistics =
+    /// <summary>Allows to order requests by descending order for the specified key</summary>
     let rank key requests =
         requests
         |> Seq.groupBy key
@@ -58,5 +69,6 @@ module Statistics =
         |> Seq.sortByDescending (fun c -> c.Values.["Count"] :?> int)
         |> Seq.toList
 
+    /// <summary>Counts all requests</summary>
     let count requests = [{
         Values = Map.ofList <| [("Count", (Seq.length requests) :> obj)] }]
