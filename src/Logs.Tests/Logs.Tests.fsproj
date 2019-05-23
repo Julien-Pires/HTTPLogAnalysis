@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="App.config" />
+    <Compile Include="Repository.Tests.fs" />
+    <Compile Include="AlertMonitoring.Tests.fs" />
     <Compile Include="LogParser.Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
-  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="Expecto" Version="8.10.1" />

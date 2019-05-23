@@ -30,7 +30,6 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
     let refreshStatistics =
         let rec loop () = async {
             do! Async.Sleep refreshRate
-
             let statistics =
                 computations
                 |> List.choose (fun (timer, computation) ->
