@@ -37,8 +37,8 @@ module LogParser =
 
     /// <summary>Parses a date with the format 'hh/mm/ss'</summary>
     let private parseTime : Parser<_> =
-        pipe3 (timeDelimiter >>. pint32) 
-              (timeDelimiter >>. pint32 .>> timeDelimiter) 
+        pipe3 (pint32 .>> timeDelimiter)
+              (pint32 .>> timeDelimiter)
               pint32
               (fun hours minutes seconds -> (hours, minutes, seconds))
         
@@ -49,7 +49,7 @@ module LogParser =
     /// <summary>Parses a datetime with the format dd/MMM/yyy:hh/mm/ss -/+XX</summary>
     let private parseDateTime : Parser<_> =
         pipe3 parseDate 
-              parseTime 
+              (timeDelimiter >>. parseTime)
               (spaces >>. parseTimeZone)
               (fun (day, month, year) (hours, minutes, seconds) (_, _) ->
                 DateTime(year, month, day, hours, minutes, seconds))
@@ -72,14 +72,7 @@ module LogParser =
             
     /// <summary>Parses HTTP version</summary>
     let private parseHTTPVersion : Parser<_> =
-        pstring "HTTP/" >>. pint32 >>. pchar '.' >>. pint32
-        
-    /// <summary>Parse a complete HTTP query</summary>
-    let private parseQuery : Parser<_> =
-        pipe3 parseMethod 
-              (ws >>. parseSection .>> ws) 
-              parseHTTPVersion 
-              (fun _ sections _ -> sections)
+        skipString "HTTP/" >>. pint32 >>. skipChar '.' >>. pint32
             
     /// <summary>Parses an HTTP ident</summary>
     let private parseHTTPIdent : Parser<_> =
@@ -91,11 +84,14 @@ module LogParser =
 
     /// <summary>Parses an HTTP datetime</summary>
     let private parseHTTPDateTime : Parser<_> = 
-        between (pchar '[') (pchar ']') parseDateTime
+        between (skipChar '[') (skipChar ']') parseDateTime
 
     /// <summary>Parses an HTTP query</summary>
     let private parseHTTPQuery : Parser<_> = 
-        between (pchar '"') (pchar '"') parseQuery
+        between (skipChar '"') (skipChar '"') (
+            parseMethod
+            >>. (ws >>. parseSection .>> ws) 
+            .>> parseHTTPVersion)
 
     /// <summary>Parses an HTTP access request</summary>
     let private parseLog : Parser<_> =
