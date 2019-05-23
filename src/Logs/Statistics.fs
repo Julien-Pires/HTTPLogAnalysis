@@ -61,14 +61,19 @@ module Statistics =
     /// <summary>Allows to order requests by descending order for the specified key</summary>
     let rank key requests =
         requests
-        |> Seq.groupBy key
-        |> Seq.map (fun (key, requests) -> {
+        |> Seq.countBy key
+        |> Seq.sortByDescending (fun (_, count) -> count)
+        |> Seq.map (fun (key, count) -> {
             Values = Map.ofList <| [
             ("Name", key)
-            ("Count", (Seq.length requests) :> obj)] })
-        |> Seq.sortByDescending (fun c -> c.Values.["Count"] :?> int)
+            ("Count", count :> obj)] })
         |> Seq.toList
 
     /// <summary>Counts all requests</summary>
     let count requests = [{
-        Values = Map.ofList <| [("Count", (Seq.length requests) :> obj)] }]
+        Values = Map([("Count", (Seq.length requests) :> obj)]) }]
+
+    /// <summary>Counts all requests that matchs with the specified filter</summary>
+    let countWith filter requests = [
+        let count = requests |> Seq.filter filter |> Seq.length
+        yield { Values = Map([("Count", count :> obj)]) }]

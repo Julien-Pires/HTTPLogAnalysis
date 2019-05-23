@@ -20,7 +20,17 @@ module Configuration =
         {   Name = "requests_per_second"
             Computation = Statistics.count
             RequestsFilter = (fun c -> RequestCache.getRequestsAt (DateTime.Now.AddSeconds(-1.0)) c)
-            Update = Tick 1000 }]
+            Update = Tick 1000 }
+
+        {   Name = "requests_per_last_ten_seconds"
+            Computation = Statistics.count
+            RequestsFilter = RequestCache.getRequestsByNow 10L
+            Update = Tick 10000 }
+            
+        {   Name = "requests_with_errors"
+            Computation = Statistics.countWith (fun c -> c.HTTPCode > 299)
+            RequestsFilter = RequestCache.getRequestsByNow 10L
+            Update = Tick 10000 } ]
     
     let alerts = [
         {   Name = "requests_limit"
@@ -34,6 +44,14 @@ module Configuration =
     let display = Map.ofList [
         ("requests_per_second", Line {
             Text = "Number of request in the last sec: {0}"
+            Parameters = fun c -> [|c.Head.Values.["Count"]|] })
+
+        ("requests_per_last_ten_seconds", Line {
+            Text = "Number of request in the last 10 sec: {0}"
+            Parameters = fun c -> [|c.Head.Values.["Count"]|] })
+
+        ("requests_with_errors", Line {
+            Text = "Number of requests with errors in the last 10 sec: {0}"
             Parameters = fun c -> [|c.Head.Values.["Count"]|] })
 
         ("most_section_hit",  Table {
