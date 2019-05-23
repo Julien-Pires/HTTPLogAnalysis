@@ -4,7 +4,7 @@ open Logs
 open Logs.Console
 
 let requestsCache = RequestCache(60.0)
-let statisticsAgent = StatisticsAgent(requestsCache, Configuration.statistics)
+let statisticsAgent = StatisticsAgent(requestsCache, Configuration.statistics, 1000)
 let alertsMonitoring = AlertMonitoring(Configuration.alerts)
 let statsRepository = KeyedRepository<StatisticResult>()
 let alertsRepository = Repository<AlertResponse>()

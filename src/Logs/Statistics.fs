@@ -11,30 +11,29 @@ type StatisticComputation = {
     RequestsFilter : RequestCache -> Request seq
     Update : UpdatePolicy }
 
-type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list) =
+type StatisticsAgent(cache : RequestCache, computations : StatisticComputation list, refreshRate) =
     let source = ObservableSource<StatisticResult list>()
     let computations =
         computations
         |> List.map (fun c ->
             match c.Update with
-            | Tick x -> (Timer(x), c))
+            | Tick x -> (Counter(x), c))
 
-    let computeStatistics =
+    let refreshStatistics =
         let rec loop () = async {
-            do! Async.Sleep 1000
-            computations |> List.iter (fun (timer, _) -> timer.Update())
+            do! Async.Sleep refreshRate
 
             let statistics =
                 computations
                 |> List.choose (fun (timer, computation) ->
+                    timer.Update()
                     match timer.IsCompleted with
                     | true ->
                         let { RequestsFilter = filter; Computation = compute } = computation
                         {   Name = computation.Name
                             Result = compute <| filter cache } |> Some
-                    |false -> None)
-
-            computations 
+                    | false -> None)
+            computations
             |> Seq.filter (fun (timer, _) -> timer.IsCompleted)
             |> Seq.iter (fun (timer, _) -> timer.Reset())
 
@@ -44,10 +43,9 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
         loop()
 
     do
-        computeStatistics |> Async.Start
+        refreshStatistics |> Async.Start
 
-    member __.AsObservable =
-        source.AsObservable
+    member __.AsObservable with get() = source.AsObservable
 
 module Statistics =
     let rank key requests =

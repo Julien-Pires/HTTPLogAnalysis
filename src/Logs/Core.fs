@@ -1,8 +1,9 @@
 ﻿namespace Logs
 
 open System
+open System.Runtime.CompilerServices
 
-type Timer(target) =
+type Counter(target) =
     let locker = obj()
     let mutable remaining = target
     let mutable lastTick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
@@ -19,3 +20,9 @@ type Timer(target) =
         lock locker (fun _ ->
             remaining <- target
             lastTick <- DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+
+[<Extension>]
+type DateTime() =
+    [<Extension>]
+    static member inline ToTimestamp(date : System.DateTime) =
+        DateTimeOffset(date).ToUnixTimeSeconds()
