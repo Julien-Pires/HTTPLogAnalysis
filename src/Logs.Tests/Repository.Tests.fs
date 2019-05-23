@@ -21,7 +21,7 @@ module Repository_Tests =
         let sut = Repository()
         let result = async {
             for _ in 0 .. elementCount do 
-                sut.Add ["Foo"]
+                sut.Add "Foo"
             return sut.Get } |> Async.RunSynchronously
 
         test <@ result = expected @>
@@ -38,7 +38,7 @@ module KeyedRepository_Tests =
     let ``get should return item associated to the given key when item has been added`` () =
         let sut = KeyedRepository()
         let result = async {
-            sut.Add [("Foo", 10)]
+            sut.Add ("Foo", 10)
             return sut.Get "Foo" } |> Async.RunSynchronously
 
         test <@ result = Some 10 @>

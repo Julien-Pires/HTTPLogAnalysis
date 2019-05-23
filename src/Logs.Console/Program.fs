@@ -21,10 +21,12 @@ let main args =
     |> Observable.subscribe (fun c ->
         c
         |> Seq.map (fun c -> (c.Name, c))
-        |> statsRepository.Add) |> ignore
+        |> Seq.iter statsRepository.Add) |> ignore
 
     statisticsAgent.AsObservable
-    |> Observable.subscribe (alertsMonitoring.Update >> alertsRepository.Add) |> ignore
+    |> Observable.subscribe (
+        alertsMonitoring.Update 
+        >> (List.iter alertsRepository.Add)) |> ignore
 
     async {
         let! lines = File.readContinuously path

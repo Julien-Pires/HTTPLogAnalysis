@@ -36,7 +36,7 @@ module Configuration =
             Update = Tick 10000 } ]
     
     let alerts = [
-        {   Name = "requests_limit"
+        {   Name = "requests_limit_exceeded"
             Statistic = "requests_per_second"
             Rule = AlertMonitoring.avgThresholdReached 120 10 Operator.superiorOrEqual "Count" }
             

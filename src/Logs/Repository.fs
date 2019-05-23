@@ -4,7 +4,7 @@
 /// Represents a set of operation for a repository
 /// </summary>
 type RepositoryOperation<'a> =
-    | Add of 'a seq
+    | Add of 'a
     | Get of AsyncReplyChannel<'a list>
 
 /// <summary>
@@ -18,9 +18,8 @@ type Repository<'a>() =
             | Get reply ->
                 reply.Reply data
                 return! loop data
-            | Add values ->
-                let newData = values |> Seq.fold (fun acc value -> value::acc) data
-                return! loop newData }
+            | Add value ->
+                return! loop (value::data) }
 
         loop List.empty<'a>)
 
@@ -32,14 +31,14 @@ type Repository<'a>() =
     /// <summary>
     /// Adds a new value to the repository
     /// </summary>
-    member __.Add values = agent.Post <| Add values
+    member __.Add value = agent.Post <| Add value
 
 /// <summary>
 /// Represents a set of operation for a keyed repository
 /// </summary>
 type KeyedRepositoryOperation<'a> =
-    | Add of (string * 'a) seq
-    | Get of (string * AsyncReplyChannel<'a option>)
+    | Add of string * 'a
+    | Get of string * AsyncReplyChannel<'a option>
 
 /// <summary>
 /// Represents a synchronized repository that stores values as a key value pair
@@ -52,9 +51,8 @@ type KeyedRepository<'a>() =
             | Get (key, reply) ->
                 data |> Map.tryFind key |> reply.Reply
                 return! loop data
-            | Add values ->
-                let newData = values |> Seq.fold (fun acc (key, value) -> acc |> Map.add key value) data
-                return! loop newData }
+            | Add (key, value) ->
+                return! loop (data |> Map.add key value) }
 
         loop Map.empty<string, 'a>)
 
@@ -66,4 +64,4 @@ type KeyedRepository<'a>() =
     /// <summary>
     /// Adds a new value to the repository
     /// </summary>
-    member __.Add values = agent.Post <| Add values
+    member __.Add value = agent.Post <| Add value
