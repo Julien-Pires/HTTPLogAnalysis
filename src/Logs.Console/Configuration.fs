@@ -3,6 +3,9 @@
 open System
 open Logs
 
+/// <summary>
+/// Contains the configuration of the log monitoring console
+/// </summary>
 module Configuration =
     let defaultPath = @"/temp/access.log"
 
@@ -35,11 +38,11 @@ module Configuration =
     let alerts = [
         {   Name = "requests_limit"
             Statistic = "requests_per_second"
-            Rule = AlertMonitoring.thresholdReached 120 10 Operator.superiorOrEqual "Count" }
+            Rule = AlertMonitoring.avgThresholdReached 120 10 Operator.superiorOrEqual "Count" }
             
         {   Name = "no_traffic_detected"
             Statistic = "requests_per_second"
-            Rule = AlertMonitoring.thresholdReached 60 0 Operator.equal "Count" }]
+            Rule = AlertMonitoring.avgThresholdReached 60 0 Operator.equal "Count" }]
 
     let display = Map.ofList [
         ("requests_per_second", Line {

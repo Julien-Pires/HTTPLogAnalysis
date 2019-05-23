@@ -3,31 +3,37 @@
 open System.Text
 open Logs
 
+/// <summary>
+/// Represents the configuration to display statistic as a table
+/// </summary>
 type TableConfiguration = {
     Title : string option 
     Headers : string list
     Columns : (Statistic -> string) list
     ColumnWidth : int }
 
+/// <summary>
+/// Contains helper methods to display table on the console
+/// </summary>
 module TableFormatting = 
     let private noData = "No Data Available"
 
-    let appendSeparator (separator : char) repeat (builder : StringBuilder) =
+    let private appendSeparator (separator : char) repeat (builder : StringBuilder) =
         builder.Append(separator, repeat).AppendLine()
 
-    let appendTitle (title : string option) (builder : StringBuilder) =
+    let private appendTitle (title : string option) (builder : StringBuilder) =
         match title with
         | Some x -> builder.Append(x).AppendLine()
         | None -> builder
 
-    let appendHeaders (headers : string list) width (builder : StringBuilder) =
+    let private appendHeaders (headers : string list) width (builder : StringBuilder) =
         headers
         |> List.fold (fun (acc : StringBuilder) c -> 
             acc.Append(c)
                .Append(' ', width - c.Length)) builder
         |> fun c -> c.AppendLine()
 
-    let appendLine item (columns : ('a -> string) list) width (builder : StringBuilder) =
+    let private appendLine item (columns : ('a -> string) list) width (builder : StringBuilder) =
         columns
         |> List.fold(fun (acc : StringBuilder) selector ->
             let value = selector item
@@ -35,7 +41,7 @@ module TableFormatting =
                .Append(' ', width - value.Length)) builder
         |> fun c -> c.AppendLine()
 
-    let appendLines items (columns : ('a -> string) list) width (builder : StringBuilder) =
+    let private appendLines items (columns : ('a -> string) list) width (builder : StringBuilder) =
         match items with
         | [] -> 
             builder.Append(' ', (columns.Length * width) / 2 - (noData.Length / 2))

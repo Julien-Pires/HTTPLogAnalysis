@@ -8,7 +8,7 @@ module AlertMonitoring_Tests =
     [<Fact>]
     let ``thresholdReached should return None when threshold is not reached`` () =
         let result = async {
-            let sut = AlertMonitoring.thresholdReached 60 20 (>) "Count" |> Agent.Start
+            let sut = AlertMonitoring.avgThresholdReached 60 20 (>) "Count" |> Agent.Start
             let responses = [
                 for _ in 0 .. 60 do
                     let stat = {
@@ -22,7 +22,7 @@ module AlertMonitoring_Tests =
     [<Fact>]
     let ``thresholdReached should return Triggered when threshold is reached`` () =
         let result = async {
-            let sut = AlertMonitoring.thresholdReached 60 10 (>) "Count" |> Agent.Start
+            let sut = AlertMonitoring.avgThresholdReached 60 10 (>) "Count" |> Agent.Start
             let responses = [
                 for _ in 0 .. 60 do
                     let stat = {
@@ -36,7 +36,7 @@ module AlertMonitoring_Tests =
     [<Fact>]
     let ``thresholdReached should return Cleared when threshold is no more reached`` () =
         let result = async {
-            let sut = AlertMonitoring.thresholdReached 60 10 (>) "Count" |> Agent.Start
+            let sut = AlertMonitoring.avgThresholdReached 60 10 (>) "Count" |> Agent.Start
             let responses = [
                 for _ in 0 .. 60 do
                     let stat = {

@@ -4,6 +4,9 @@ open FParsec
 
 type Parser<'a> = Parser<'a, unit>
 
+/// <summary>
+/// Contains methods to parse arguments passed to the application with format -x:value
+/// </summary>
 module ArgumentsParser =
     let private parseArgumentKey : Parser<_> =
         skipChar '-' >>. anyChar
