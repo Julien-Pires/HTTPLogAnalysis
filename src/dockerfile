@@ -1,0 +1,11 @@
+FROM microsoft/dotnet:sdk AS build-env
+WORKDIR /app
+
+COPY . ./
+RUN dotnet restore
+RUN dotnet publish -c Release -o out
+
+FROM microsoft/dotnet:2.2.2-runtime
+WORKDIR /src
+COPY --from=build-env /app/Logs.Console/out/ .
+ENTRYPOINT ["dotnet", "Logs.Console.dll"]

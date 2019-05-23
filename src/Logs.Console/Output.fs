@@ -4,14 +4,23 @@ open System
 open System.Text
 open Logs
 
+/// <summary>
+/// Represents the configuration to display statistic on a single line
+/// </summary>
 type LineConfiguration = {
     Text : string 
     Parameters : Statistic list -> obj array }
 
+/// <summary>
+/// Represents the type of display configuration
+/// </summary>
 type DisplayConfiguration =
     | Line of LineConfiguration
     | Table of TableConfiguration
 
+/// <summary>
+/// Contains helper methods to output statistics and alerts to the console
+/// </summary>
 module Output =
     let private builder = StringBuilder()
 

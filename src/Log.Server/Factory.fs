@@ -25,7 +25,10 @@ module LogFactory =
                            .Append("] ")
                            .Append("\"GET ")
                            .Append(Data.sections.[section])
-                           .Append(" HTTP/1.0\" 200 2326")
+                           .Append(" HTTP/1.0\" ")
+                           .Append(rnd.Next(200, 600))
+                           .Append(' ')
+                           .Append(rnd.Next(100, 5000))
                            .ToString()
                 yield log
             yield! loop builder }
