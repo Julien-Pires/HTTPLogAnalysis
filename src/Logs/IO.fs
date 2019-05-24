@@ -4,14 +4,20 @@ open System.IO
 open FSharp.Control
 open FSharpx.Control
 
-/// <summary>Represents an action that has been performed on a file</summary>
+/// <summary>
+/// Represents an action that has been performed on a file
+/// </summary>
 type FileAction =
     | Created
     | Deleted
 
-/// <summary>Contains I/O operations to work with files</summary>
+/// <summary>
+/// Contains I/O operations to work with files
+/// </summary>
 module File =
-    /// <summary>Reads all lines in a stream until the end is reached</summary>
+    /// <summary>
+    /// Reads all lines in a stream until the end is reached
+    /// </summary>
     let private readLines (stream : StreamReader) =
         let rec loop acc =
             match stream.ReadLine() with
@@ -19,7 +25,9 @@ module File =
             | x -> loop (x::acc)
         loop [] |> List.rev
 
-    /// <summary>Reads a file continuously returning each line through an async sequence</summary>
+    /// <summary>
+    /// Reads a file continuously returning each line through an async sequence
+    /// </summary>
     let read path =
         let rec loop (stream : StreamReader) = asyncSeq {
             for i in readLines stream do
@@ -33,7 +41,9 @@ module File =
             let reader = new StreamReader(file)
             yield! loop reader }
 
-    /// <summary>Gets an observable that is triggered when a specified file is either created or deleted</summary>
+    /// <summary>
+    /// Gets an observable that is triggered when a specified file is either created or deleted
+    /// </summary>
     let checkFileStatus directory file =
         let watcher = new FileSystemWatcher(directory)
         watcher.Filter <- file
@@ -42,7 +52,9 @@ module File =
         let deleted = watcher.Deleted |> Observable.map (fun c -> Deleted)
         Observable.merge created deleted
 
-    /// <summary>Reads a file continuously if it exists or when it has been created</summary>
+    /// <summary>
+    /// Reads a file continuously if it exists or when it has been created
+    /// </summary>
     let readContinuously path =
         let rec loop () = async {
             if File.Exists path then
@@ -54,7 +66,9 @@ module File =
                 return! loop() }
         loop()
 
-    /// <summary>Writes continuously to a file with the value provided by the input async sequence</summary>
+    /// <summary>
+    /// Writes continuously to a file with the value provided by the input async sequence
+    /// </summary>
     let writeContinuously path (source : AsyncSeq<string>) = async {
         let file = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite)
         let writer = new StreamWriter(file)
