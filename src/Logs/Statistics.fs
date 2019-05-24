@@ -2,11 +2,15 @@
 
 open FSharpx.Control
 
-/// <summary>Represents the update policy used for computing a statistic</summary>
+/// <summary>
+/// Represents the update policy used for computing a statistic
+/// </summary>
 type UpdatePolicy =
     | Tick of int
 
-/// <summary>Represents a statistic to compute</summary>
+/// <summary>
+/// Represents a statistic to compute
+/// </summary>
 type StatisticComputation = {
     Name : string
     Computation : Request seq -> Statistic list
@@ -26,7 +30,9 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
             match c.Update with
             | Tick x -> (Counter(x), c))
 
-    /// <summary>Represents an asynchronous task that computes statistics perdiodically</summary>
+    /// <summary>
+    /// Represents an asynchronous task that computes statistics perdiodically
+    /// </summary>
     let refreshStatistics =
         let rec loop () = async {
             do! Async.Sleep refreshRate
@@ -52,12 +58,18 @@ type StatisticsAgent(cache : RequestCache, computations : StatisticComputation l
     do
         refreshStatistics |> Async.Start
 
-    /// <summary>Returns this instance as an observable object</summary>
+    /// <summary>
+    /// Returns this instance as an observable object
+    /// </summary>
     member __.AsObservable with get() = source.AsObservable
 
-/// <summary>Contains methods to compute statistics</summary>
+/// <summary>
+/// Contains methods to compute statistics
+/// </summary>
 module Statistics =
-    /// <summary>Allows to order requests by descending order for the specified key</summary>
+    /// <summary>
+    /// Allows to order requests by descending order for the specified key
+    /// </summary>
     let rank key requests =
         requests
         |> Seq.countBy key
@@ -68,11 +80,15 @@ module Statistics =
             ("Count", count :> obj)] })
         |> Seq.toList
 
-    /// <summary>Counts all requests</summary>
+    /// <summary>
+    /// Counts all requests
+    /// </summary>
     let count requests = [{
         Values = Map([("Count", (Seq.length requests) :> obj)]) }]
 
-    /// <summary>Counts all requests that matchs with the specified filter</summary>
+    /// <summary>
+    /// Counts all requests that matchs with the specified filter
+    /// </summary>
     let countWith filter requests = [
         let count = requests |> Seq.filter filter |> Seq.length
         yield { Values = Map([("Count", count :> obj)]) }]
